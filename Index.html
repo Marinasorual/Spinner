@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luck Spinner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Luck Spinner</h1>
+    <div id="spinner-container">
+        <canvas id="spinner" width="300" height="300"></canvas>
+        <div class="pointer"></div>
+    </div>
+
+    <div class="controls">
+        <div class="section-input">
+            <input type="text" id="section-input" placeholder="Enter a section name">
+            <button class="add" id="add-section">Add Section</button>
+        </div>
+
+        <button id="spin-button" class="spin">Spin</button>
+        <button id="stop-button" class="spin" style="display:none;">Stop</button>
+    </div>
+
+    <table class="section-table" id="sections-list"></table>
+
+    <div class="snow" id="snow"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
