@@ -15,26 +15,24 @@ body {
 
 body[dir="rtl"] {
     direction: rtl;
-    /* Mirror the flex container in RTL mode */
 }
 
 footer {
-    text-align: left; /* تحريك النص لليسار */
+    text-align: left;
     padding: 20px;
     position: fixed;
     width: 100%;
     bottom: 0;
-    left: 0; /* تحديد موضع الفوتر على اليسار */
+    left: 0;
 }
 
 footer p {
     margin: 0;
-    font-size: 16px; /* يمكنك تعديل الحجم كما يناسبك */
+    font-size: 16px;
     color: #ffd700;
-    font-family: Arial, sans-serif;
     position: absolute;
-    left: 20px; /* المسافة من الحافة اليسرى */
-    bottom: 10px; /* المسافة من الأسفل */
+    left: 20px;
+    bottom: 10px;
 }
 
 h1 {
@@ -74,11 +72,11 @@ h1 {
     gap: 1rem;
     width: 90%;
     max-width: 400px;
-    text-align: left; /* Ensure text is aligned based on direction */
+    text-align: left;
 }
 
 body[dir="rtl"] .controls {
-    text-align: right; /* Adjust alignment in RTL */
+    text-align: right;
 }
 
 .section-input {
@@ -213,7 +211,6 @@ button.delete:hover {
 #snackbar {
     visibility: hidden;
     min-width: 250px;
-    margin-left: -125px;
     background-color: #333;
     color: #fff;
     text-align: center;
@@ -223,36 +220,43 @@ button.delete:hover {
     z-index: 1;
     left: 50%;
     bottom: 30px;
-    font-size: 17px;
+    font-size: 30px;  /* تغيير حجم الخط هنا */
+    font-weight: bold;  /* لتكبير الخط بشكل أكبر */
+    transform: translateX(-50%); /* لضمان أن الرسالة تظهر في المنتصف */
+    max-width: 80%;  /* تحديد أقصى عرض */
 }
 
 #snackbar.show {
     visibility: visible;
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-}
-
-@-webkit-keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
+    animation: fadein 0.5s, fadeout 0.5s 40s; /* مدة ظهور الرسالة 40 ثانية */
 }
 
 @keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
-}
-
-@-webkit-keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
-button.dimmed {
-    opacity: 0.5;
-    cursor: not-allowed;
+#congratulations-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #FFD700;
+    padding: 70px;
+    border-radius: 30px;
+    text-align: center;
+    font-size: 20rem; /* تغيير الحجم لأقصى حد */
+    display: none;
+    z-index: 1000;
+    white-space: nowrap; /* لضمان أن النص لا يلتف */
+}
+
+.hidden {
+    display: none;
 }

@@ -296,8 +296,10 @@ class LuckSpinner {
         snackbar.className = 'show';
         setTimeout(() => {
             snackbar.className = snackbar.className.replace('show', '');
-        }, 3000);
+        }, 30000); // مدة ظهور الرسالة: 40 ثانية
     }
-}
+    
+    }
+
 
 const spinner = new LuckSpinner('spinner', 'pointer');
