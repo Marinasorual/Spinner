@@ -2,40 +2,130 @@ class LuckSpinner {
     constructor(spinnerId, pointerClass) {
         this.spinnerCanvas = document.getElementById(spinnerId);
         this.ctx = this.spinnerCanvas.getContext('2d');
-        this.spinnerSize = this.spinnerCanvas.width; // Assume square canvas
+        this.spinnerSize = this.spinnerCanvas.width;
         this.sections = [];
         this.rotation = 0;
         this.spinning = false;
         this.spinSpeed = 0;
-        this.acceleration = 0.5; // Speed increase during spin
-        this.deceleration = 0.2; // Speed decrease when slowing
-        this.maxSpeed = 15; // Maximum spin speed
+        this.acceleration = 0.4; 
+        this.deceleration = 0.1; 
+        this.maxSpeed = 30;
         this.spinInterval = null;
+        this.language = 'en';
 
-        // Load background image
-        this.backgroundImage = new Image();
-        this.backgroundImage.src = 'logo.png';
-        this.isBackgroundDrawn = false;  // Flag to track if background is already drawn
-        this.backgroundImage.onload = () => {
-            this.isBackgroundDrawn = true;  // Set the flag once the image is loaded
-            this.updateSpinner();  // Now update the spinner after image is loaded
+        this.texts = {
+            en: {
+                title: 'Luck Spinner',
+                addSection: 'Add Section',
+                enterSectionName: 'Enter a section name',
+                spin: 'Spin',
+                stop: 'Stop',
+                emptySectionMessage: 'Section name is either empty or already exists.',
+                noSectionsMessage: 'Add at least one section to spin!',
+                congratulationsMessage: 'Congratulations! The spinner stopped on: ',
+                switchLanguage: 'Switch to Arabic'
+            },
+            ar: {
+                title: 'عجلة الحظ',
+                addSection: 'إضافة قسم',
+                enterSectionName: 'أدخل اسم القسم',
+                spin: 'ادور',
+                stop: 'توقف',
+                emptySectionMessage: 'اسم القسم إما فارغ أو موجود بالفعل.',
+                noSectionsMessage: 'أضف قسمًا واحدًا على الأقل لتدوير!',
+                congratulationsMessage: 'تهانينا! توقفت العجلة عند: ',
+                switchLanguage: 'التبديل إلى الإنجليزية'
+            }
+        };
+
+        this.sounds = {
+            add: new Audio('sounds/add.mp3'),
+            delete: new Audio('sounds/delete.mp3'),
+            stop: new Audio('sounds/delete.mp3'),
+            spinning: new Audio('sounds/spin.mp3'),
+            spin: new Audio('sounds/spin.mp3'),
+            background: new Audio('sounds/background1.mp3')
+        };
+
+        Object.values(this.sounds).forEach((sound) => {
+            sound.volume = 0.4; // Set lower volume
+        });
+        this.sounds.spinning.loop = true;
+        this.sounds.background.loop = true; 
+
+        this.defaultBackgroundImage = new Image();
+        this.defaultBackgroundImage.src = 'logo.png';
+        this.sectionsBackgroundImage = new Image();
+        this.sectionsBackgroundImage.src = 'logo.png';
+
+        this.defaultBackgroundImage.onload = () => {
+            this.updateSpinner();
+        };
+
+        this.sectionsBackgroundImage.onload = () => {
+            this.updateSpinner();
         };
 
         this.init();
     }
 
     init() {
-        document.getElementById('add-section').addEventListener('click', () => this.addSection());
-        document.getElementById('section-input').addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') this.addSection();
+        document.getElementById('add-section').addEventListener('click', () => {
+            this.sounds.add.pause();
+            this.sounds.add.currentTime = 0;
+            this.addSection();
         });
 
-        document.getElementById('spin-button').addEventListener('click', () => this.startSpin());
-        document.getElementById('stop-button').addEventListener('click', () => this.stopSpin());
+        document.getElementById('section-input').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                this.sounds.add.pause();
+                this.sounds.add.currentTime = 0;
+                this.addSection();
+            }
+        });
+
+        document.getElementById('spin-button').addEventListener('click', () => {
+            this.sounds.spin.pause();
+            this.sounds.spin.currentTime = 0;
+            this.startSpin();
+        });
+
+        document.getElementById('stop-button').addEventListener('click', () => {
+            this.sounds.stop.pause();
+            this.sounds.stop.currentTime = 0;
+            this.initiateStop();
+        });
+
+        document.getElementById('language-switcher').addEventListener('click', () => {
+            this.switchLanguage();
+        });
+
+        document.addEventListener('click', () => {
+            this.sounds.background.play();
+        }, { once: true });
 
         this.updateSpinner();
         this.updateSectionTable();
-        this.createSnow(); // Adds snowfall effect
+        this.createSnow();
+        this.updateLanguage();
+    }
+
+    switchLanguage() {
+        this.language = this.language === 'en' ? 'ar' : 'en';
+        this.updateLanguage();
+    }
+
+    updateLanguage() {
+        const texts = this.texts[this.language];
+
+        document.getElementById('title').innerText = texts.title;
+        document.getElementById('section-input').placeholder = texts.enterSectionName;
+        document.getElementById('add-section').innerText = texts.addSection;
+        document.getElementById('spin-button').innerText = texts.spin;
+        document.getElementById('stop-button').innerText = texts.stop;
+        document.getElementById('language-switcher').innerText = texts.switchLanguage;
+
+        document.body.dir = this.language === 'ar' ? 'rtl' : 'ltr';
     }
 
     addSection() {
@@ -44,15 +134,19 @@ class LuckSpinner {
         if (sectionName && !this.sections.includes(sectionName)) {
             this.sections.push(sectionName);
             input.value = '';
+            this.sounds.add.play(); 
             this.updateSpinner();
             this.updateSectionTable();
         } else {
-            alert('Section name is either empty or already exists.');
+            this.showSnackbar(this.texts[this.language].emptySectionMessage);
         }
     }
 
     removeSection(index) {
         this.sections.splice(index, 1);
+        this.sounds.delete.pause();
+        this.sounds.delete.currentTime = 0;
+        this.sounds.delete.play(); 
         this.updateSpinner();
         this.updateSectionTable();
     }
@@ -61,32 +155,29 @@ class LuckSpinner {
         const radius = this.spinnerCanvas.width / 2;
         const totalSections = this.sections.length || 1;
         const anglePerSection = (2 * Math.PI) / totalSections;
-    
-        // Clear canvas, but keep the background image if already loaded
+
         this.ctx.clearRect(0, 0, this.spinnerCanvas.width, this.spinnerCanvas.height);
-    
-        // Draw background image if it's loaded and not drawn already
-        if (this.isBackgroundDrawn) {
-            this.ctx.drawImage(this.backgroundImage, 0, 0, this.spinnerSize, this.spinnerSize);
+
+        if (this.sections.length === 0) {
+            this.ctx.drawImage(this.defaultBackgroundImage, 0, 0, this.spinnerSize, this.spinnerSize);
+        } else {
+            this.ctx.drawImage(this.sectionsBackgroundImage, 0, 0, this.spinnerSize, this.spinnerSize);
         }
-    
-        // Draw sections
+
         this.sections.forEach((section, index) => {
             const startAngle = index * anglePerSection;
             const endAngle = startAngle + anglePerSection;
-    
-            // Draw pie slice
+
             this.ctx.beginPath();
             this.ctx.moveTo(radius, radius);
             this.ctx.arc(radius, radius, radius, startAngle, endAngle);
-            this.ctx.fillStyle = this.getColor(index);
+            this.ctx.fillStyle = this.getColor(index, 0.8);
             this.ctx.fill();
             this.ctx.strokeStyle = '#fff';
             this.ctx.lineWidth = 2;
             this.ctx.stroke();
             this.ctx.closePath();
-    
-            // Add section text
+
             this.ctx.save();
             this.ctx.translate(radius, radius);
             this.ctx.rotate(startAngle + anglePerSection / 2);
@@ -97,30 +188,47 @@ class LuckSpinner {
             this.ctx.restore();
         });
     }
-    
-    getColor(index) {
-        const colors = ['#FF4500', '#FFD700', '#4CAF50', '#00BFFF', '#FF69B4'];
+
+    getColor(index, alpha = 1) {
+        const colors = [
+            `rgba(255, 69, 0, ${alpha})`,
+            `rgba(255, 215, 0, ${alpha})`,
+            `rgba(76, 175, 80, ${alpha})`,
+            `rgba(0, 191, 255, ${alpha})`,
+            `rgba(255, 105, 180, ${alpha})`
+        ];
         return colors[index % colors.length];
     }
 
     startSpin() {
         if (this.spinning || this.sections.length === 0) {
-            alert('Add at least one section to spin!');
+            this.showSnackbar(this.texts[this.language].noSectionsMessage);
             return;
         }
 
         this.spinning = true;
-        this.spinSpeed = 1; // Initial spin speed
+        this.spinSpeed = 1;
+        this.sounds.spin.play(); 
+        this.sounds.spinning.play(); 
+
         document.getElementById('spin-button').style.display = 'none';
         document.getElementById('stop-button').style.display = 'inline';
+        document.getElementById('stop-button').disabled = false;
+        document.getElementById('stop-button').classList.remove('dimmed');
 
         this.spinInterval = setInterval(() => this.spin(), 16);
     }
 
-    stopSpin() {
+    initiateStop() {
         if (!this.spinning) return;
-        this.spinning = false;
 
+        document.getElementById('stop-button').disabled = true;
+        document.getElementById('stop-button').classList.add('dimmed');
+
+        this.spinning = false;
+    }
+
+    stopSpin() {
         document.getElementById('spin-button').style.display = 'inline';
         document.getElementById('stop-button').style.display = 'none';
 
@@ -128,37 +236,38 @@ class LuckSpinner {
         this.spinInterval = null;
 
         const winnerIndex = this.getWinner();
-        alert(`Congratulations! The spinner stopped on: ${this.sections[winnerIndex]}`);
+        this.showSnackbar(this.texts[this.language].congratulationsMessage + this.sections[winnerIndex]);
+
+        this.sounds.spinning.pause();
+        this.sounds.stop.play();
     }
 
     spin() {
-        if (!this.spinning) return;
+        if (!this.spinning && this.spinSpeed <= 0) return;
 
         this.rotation += this.spinSpeed;
-        this.spinSpeed = Math.min(this.spinSpeed + this.acceleration, this.maxSpeed);
-
-        // Randomly start deceleration after reaching max speed
-        if (this.spinSpeed >= this.maxSpeed && Math.random() > 0.98) {
-            this.spinSpeed = Math.max(this.spinSpeed - this.deceleration, 0);
-        }
+        this.spinSpeed = this.spinning 
+            ? Math.min(this.spinSpeed + this.acceleration, this.maxSpeed) 
+            : Math.max(this.spinSpeed - this.deceleration, 0);
 
         this.spinnerCanvas.style.transform = `rotate(${this.rotation}deg)`;
 
-        // Stop spinning when speed reaches zero
-        if (this.spinSpeed <= 0) this.stopSpin();
+        if (!this.spinning && this.spinSpeed <= 0) this.stopSpin();
     }
 
     getWinner() {
         const totalSections = this.sections.length;
         const anglePerSection = 360 / totalSections;
-        const normalizedRotation = (this.rotation % 360 + 360) % 360; // Normalize rotation to 0-360 degrees
-        const winningIndex = Math.floor((360 - normalizedRotation) / anglePerSection) % totalSections;
+        const normalizedRotation = (this.rotation % 360 + 360) % 360;
+        
+        const winningIndex = (Math.floor((normalizedRotation + anglePerSection / 2) / anglePerSection) + totalSections) % totalSections;
+        
         return winningIndex;
     }
 
     updateSectionTable() {
         const list = document.getElementById('sections-list');
-        list.innerHTML = ''; // Clear existing list
+        list.innerHTML = '';
         this.sections.forEach((section, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -180,7 +289,15 @@ class LuckSpinner {
             snowContainer.appendChild(snowflake);
         }
     }
+
+    showSnackbar(message) {
+        const snackbar = document.getElementById('snackbar');
+        snackbar.innerText = message;
+        snackbar.className = 'show';
+        setTimeout(() => {
+            snackbar.className = snackbar.className.replace('show', '');
+        }, 3000);
+    }
 }
 
-// Initialize spinner
 const spinner = new LuckSpinner('spinner', 'pointer');

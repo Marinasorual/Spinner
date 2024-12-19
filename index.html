@@ -7,15 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Luck Spinner</h1>
+
+    <button id="language-switcher">Switch to Arabic</button>
+
+    <h1 id="title">Luck Spinner</h1>
     <div id="spinner-container">
         <canvas id="spinner" width="300" height="300"></canvas>
-        <div class="pointer"></div>
     </div>
 
     <div class="controls">
         <div class="section-input">
-            <input type="text" id="section-input" placeholder="Enter a section name">
+            <input type="text" id="section-input" placeholder="Enter a section name" />
             <button class="add" id="add-section">Add Section</button>
         </div>
 
@@ -23,9 +25,17 @@
         <button id="stop-button" class="spin" style="display:none;">Stop</button>
     </div>
 
-    <table class="section-table" id="sections-list"></table>
+    <div class="section-table-container">
+        <table class="section-table" id="sections-list"></table>
+    </div>
 
     <div class="snow" id="snow"></div>
+
+    <div id="snackbar"></div>
+
+    <footer>
+        <p>Developed by Marina Sorual</p>
+    </footer>
 
     <script src="script.js"></script>
 </body>
