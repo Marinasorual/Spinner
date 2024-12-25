@@ -7,8 +7,8 @@ class LuckSpinner {
         this.rotation = 0;
         this.spinning = false;
         this.spinSpeed = 0;
-        this.acceleration = 0.4; 
-        this.deceleration = 0.1; 
+        this.acceleration = 0.4;
+        this.deceleration = 0.1;
         this.maxSpeed = 30;
         this.spinInterval = null;
         this.language = 'en';
@@ -17,7 +17,8 @@ class LuckSpinner {
             en: {
                 title: 'Luck Spinner',
                 addSection: 'Add Section',
-                enterSectionName: 'Enter a section name',
+                enterFirstNumber: 'Enter the first number',
+                enterLastNumber: 'Enter the last number',
                 spin: 'Spin',
                 stop: 'Stop',
                 emptySectionMessage: 'Section name is either empty or already exists.',
@@ -28,7 +29,8 @@ class LuckSpinner {
             ar: {
                 title: 'عجلة الحظ',
                 addSection: 'إضافة قسم',
-                enterSectionName: 'أدخل اسم القسم',
+                enterFirstNumber: 'أدخل الرقم الأول',
+                enterLastNumber: 'أدخل الرقم الأخير',
                 spin: 'ادور',
                 stop: 'توقف',
                 emptySectionMessage: 'اسم القسم إما فارغ أو موجود بالفعل.',
@@ -51,7 +53,7 @@ class LuckSpinner {
             sound.volume = 0.4; // Set lower volume
         });
         this.sounds.spinning.loop = true;
-        this.sounds.background.loop = true; 
+        this.sounds.background.loop = true;
 
         this.defaultBackgroundImage = new Image();
         this.defaultBackgroundImage.src = 'logo.png';
@@ -70,18 +72,10 @@ class LuckSpinner {
     }
 
     init() {
-        document.getElementById('add-section').addEventListener('click', () => {
+        document.getElementById('add-range').addEventListener('click', () => {
             this.sounds.add.pause();
             this.sounds.add.currentTime = 0;
-            this.addSection();
-        });
-
-        document.getElementById('section-input').addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                this.sounds.add.pause();
-                this.sounds.add.currentTime = 0;
-                this.addSection();
-            }
+            this.addRange();
         });
 
         document.getElementById('spin-button').addEventListener('click', () => {
@@ -94,6 +88,10 @@ class LuckSpinner {
             this.sounds.stop.pause();
             this.sounds.stop.currentTime = 0;
             this.initiateStop();
+        });
+
+        document.getElementById('clear-sections').addEventListener('click', () => {
+            this.clearSections();
         });
 
         document.getElementById('language-switcher').addEventListener('click', () => {
@@ -119,34 +117,50 @@ class LuckSpinner {
         const texts = this.texts[this.language];
 
         document.getElementById('title').innerText = texts.title;
-        document.getElementById('section-input').placeholder = texts.enterSectionName;
-        document.getElementById('add-section').innerText = texts.addSection;
+        document.getElementById('start-number').placeholder = texts.enterFirstNumber;
+        document.getElementById('end-number').placeholder = texts.enterLastNumber;
+        document.getElementById('add-range').innerText = texts.addSection;
         document.getElementById('spin-button').innerText = texts.spin;
         document.getElementById('stop-button').innerText = texts.stop;
+        document.getElementById('clear-sections').innerText = 'Clear Sections';
         document.getElementById('language-switcher').innerText = texts.switchLanguage;
 
         document.body.dir = this.language === 'ar' ? 'rtl' : 'ltr';
     }
 
-    addSection() {
-        const input = document.getElementById('section-input');
-        const sectionName = input.value.trim();
-        if (sectionName && !this.sections.includes(sectionName)) {
-            this.sections.push(sectionName);
-            input.value = '';
-            this.sounds.add.play(); 
-            this.updateSpinner();
-            this.updateSectionTable();
-        } else {
+    addRange() {
+        const start = parseInt(document.getElementById('start-number').value, 10);
+        const end = parseInt(document.getElementById('end-number').value, 10);
+
+        if (isNaN(start) || isNaN(end) || start > end) {
             this.showSnackbar(this.texts[this.language].emptySectionMessage);
+            return;
         }
+
+        for (let i = start; i <= end; i++) {
+            if (!this.sections.includes(i.toString())) {
+                this.sections.push(i.toString());
+            }
+        }
+
+        document.getElementById('start-number').value = '';
+        document.getElementById('end-number').value = '';
+        this.sounds.add.play();
+        this.updateSpinner();
+        this.updateSectionTable();
     }
 
     removeSection(index) {
         this.sections.splice(index, 1);
         this.sounds.delete.pause();
         this.sounds.delete.currentTime = 0;
-        this.sounds.delete.play(); 
+        this.sounds.delete.play();
+        this.updateSpinner();
+        this.updateSectionTable();
+    }
+
+    clearSections() {
+        this.sections = [];
         this.updateSpinner();
         this.updateSectionTable();
     }
@@ -208,8 +222,8 @@ class LuckSpinner {
 
         this.spinning = true;
         this.spinSpeed = 1;
-        this.sounds.spin.play(); 
-        this.sounds.spinning.play(); 
+        this.sounds.spin.play();
+        this.sounds.spinning.play();
 
         document.getElementById('spin-button').style.display = 'none';
         document.getElementById('stop-button').style.display = 'inline';
@@ -246,8 +260,8 @@ class LuckSpinner {
         if (!this.spinning && this.spinSpeed <= 0) return;
 
         this.rotation += this.spinSpeed;
-        this.spinSpeed = this.spinning 
-            ? Math.min(this.spinSpeed + this.acceleration, this.maxSpeed) 
+        this.spinSpeed = this.spinning
+            ? Math.min(this.spinSpeed + this.acceleration, this.maxSpeed)
             : Math.max(this.spinSpeed - this.deceleration, 0);
 
         this.spinnerCanvas.style.transform = `rotate(${this.rotation}deg)`;
@@ -259,9 +273,9 @@ class LuckSpinner {
         const totalSections = this.sections.length;
         const anglePerSection = 360 / totalSections;
         const normalizedRotation = (this.rotation % 360 + 360) % 360;
-        
+
         const winningIndex = (Math.floor((normalizedRotation + anglePerSection / 2) / anglePerSection) + totalSections) % totalSections;
-        
+
         return winningIndex;
     }
 
@@ -292,14 +306,40 @@ class LuckSpinner {
 
     showSnackbar(message) {
         const snackbar = document.getElementById('snackbar');
-        snackbar.innerText = message;
-        snackbar.className = 'show';
-        setTimeout(() => {
-            snackbar.className = snackbar.className.replace('show', '');
-        }, 30000); // مدة ظهور الرسالة: 40 ثانية
-    }
-    
-    }
+        const messageElement = document.getElementById('snackbar-message');
+        const starsElement = document.getElementById('snackbar-stars');
+        const progressBar = document.getElementById('snackbar-progress');
+        let snackbarTimeout;
 
+        // Clear any existing timeout or animations
+        clearTimeout(snackbarTimeout);
+        snackbar.className = '';
+        starsElement.innerHTML = ''; // Clear stars
+
+        // Set message and prepare stars animation
+        messageElement.innerText = message;
+        for (let i = 0; i < 20; i++) {
+            const star = document.createElement('span');
+            star.innerText = '★';
+            star.style.animationDelay = `${i * 0.3}s`;
+            starsElement.appendChild(star);
+        }
+
+        // Show the snackbar
+        snackbar.className = 'show';
+
+        // Reset and animate the progress bar
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+            progressBar.style.transition = 'width 20s linear';
+            progressBar.style.width = '0%';
+        }, 20);
+
+        snackbarTimeout = setTimeout(() => {
+            snackbar.className = snackbar.className.replace('show', '');
+        }, 20000);
+    }
+}
 
 const spinner = new LuckSpinner('spinner', 'pointer');

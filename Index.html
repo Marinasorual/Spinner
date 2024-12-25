@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luck Spinner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <button id="language-switcher">Switch to Arabic</button>
+
+    <h1 id="title">Luck Spinner</h1>
+    
+    <div class="main-container">
+        <div id="spinner-container">
+            <canvas id="spinner" width="450" height="450"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="section-input">
+                <input type="number" id="start-number" placeholder="Start" />
+                <input type="number" id="end-number" placeholder="End" />
+                <button class="add" id="add-range">Add Range</button>
+            </div>
+
+            <button id="spin-button" class="spin">Spin</button>
+            <button id="stop-button" class="spin" style="display:none;">Stop</button>
+            <button id="clear-sections">Clear Sections</button>
+            
+            <div class="section-table-container">
+                <table class="section-table" id="sections-list"></table>
+            </div>
+        </div>
+    </div>
+
+    <div class="snow" id="snow"></div>
+
+    <div id="snackbar">
+        <div id="snackbar-content">
+            <span id="snackbar-message"></span>
+            <div id="snackbar-stars"></div>
+        </div>
+        <div id="snackbar-progress"></div>
+    </div>
+    
+
+    <footer>
+        <p>Developed by Marina Sorual</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
